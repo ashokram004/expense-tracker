@@ -5,6 +5,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +13,22 @@ import {
   View,
 } from "react-native";
 import { TemplateItem, usePlanStore } from "../src/store/planStore";
+
+// Color palette - Professional and modern
+const colors = {
+  primary: "#1A1A2E",
+  secondary: "#16213E",
+  accent: "#0F3460",
+  highlight: "#E94560",
+  success: "#00C897",
+  warning: "#FFB800",
+  background: "#F8F9FA",
+  card: "#FFFFFF",
+  text: "#1A1A2E",
+  textSecondary: "#6C757D",
+  border: "#E9ECEF",
+  danger: "#DC3545",
+};
 
 export default function HomeScreen() {
   const { instances, templates, addInstance, removeInstance, addTemplate, removeTemplate } = usePlanStore();
@@ -41,7 +58,7 @@ export default function HomeScreen() {
   const handleDeleteInstance = (id: string, name: string) => {
     Alert.alert(
       "Delete Bucket",
-      `Are you sure you want to delete "${name}"? This will delete all expenses for this bucket.`,
+      `Are you sure you want to delete "${name}"? This will delete all expenses.`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Delete", style: "destructive", onPress: () => removeInstance(id) },
@@ -100,7 +117,7 @@ export default function HomeScreen() {
     if (templates.length === 0) {
       Alert.alert(
         "No Templates",
-        "Please create a template first using 'Manage Templates'.",
+        "Please create a template first.",
         [
           { text: "Cancel", style: "cancel" },
           { text: "Create Template", onPress: () => setShowTemplateModal(true) },
@@ -115,78 +132,139 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Expense Tracker</Text>
-
-      <Text style={styles.sectionTitle}>Budget Buckets</Text>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Budget Buckets</Text>
+        <Text style={styles.subtitle}>Track your expenses effortlessly</Text>
+      </View>
+
+      {/* Buckets List */}
       <FlatList
         data={instances}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item, index }) => (
           <Pressable
-            style={styles.card}
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+              { backgroundColor: colors.card }
+            ]}
             onPress={() => router.push({ pathname: "/plan/[id]", params: { id: item.id } })}
-            onLongPress={() => handleDeleteInstance(item.id, item.name)}
           >
-            <Text style={styles.cardText}>{item.name}</Text>
+            <View style={styles.cardIcon}>
+              <Text style={styles.cardIconText}>📦</Text>
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardText}>{item.name}</Text>
+              <Text style={styles.cardSubtext}>Tap to view details</Text>
+            </View>
+            <Pressable 
+              style={styles.deleteCardButton}
+              onPress={() => handleDeleteInstance(item.id, item.name)}
+            >
+              {/* White 2D dustbin icon using shapes */}
+              <View style={styles.dustbinContainer}>
+                <View style={styles.dustbinTop} />
+                <View style={styles.dustbinBody}>
+                  <View style={styles.dustbinLine} />
+                  <View style={styles.dustbinLine} />
+                  <View style={styles.dustbinLine} />
+                </View>
+              </View>
+            </Pressable>
           </Pressable>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No budget buckets yet. Create one below!</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>💰</Text>
+            <Text style={styles.emptyTitle}>No Buckets Yet</Text>
+            <Text style={styles.emptyText}>Create your first budget bucket to start tracking expenses</Text>
+          </View>
+        }
       />
 
-      <Pressable
-        style={styles.addButton}
-        onPress={handleCreateBucketPress}
-      >
-        <Text style={styles.addText}>+ Create Bucket</Text>
-      </Pressable>
+      {/* Action Buttons */}
+      <View style={styles.buttonContainer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.primaryButton,
+            pressed && styles.buttonPressed
+          ]}
+          onPress={handleCreateBucketPress}
+        >
+          <Text style={styles.primaryButtonIcon}>+</Text>
+          <Text style={styles.primaryButtonText}>Create Bucket</Text>
+        </Pressable>
 
-      <View style={styles.menuContainer}>
-        <TouchableOpacity
-          style={styles.menuButton}
+        <Pressable
+          style={({ pressed }) => [
+            styles.secondaryButton,
+            pressed && styles.buttonPressed
+          ]}
           onPress={() => setShowTemplateModal(true)}
         >
-          <Text style={styles.menuButtonText}>Manage Templates</Text>
-        </TouchableOpacity>
+          <Text style={styles.secondaryButtonText}>Manage Templates</Text>
+        </Pressable>
       </View>
 
       {/* Create from Template Modal */}
       <Modal visible={showCreateFromTemplateModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setShowCreateFromTemplateModal(false)} />
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Create Bucket from Template</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Create Bucket</Text>
+              <Text style={styles.modalSubtitle}>Select a template to get started</Text>
+            </View>
             
             <TextInput
               style={styles.input}
               placeholder="Bucket name (e.g., Goa Trip)"
+              placeholderTextColor={colors.textSecondary}
               value={instanceName}
               onChangeText={setInstanceName}
             />
             
-            <Text style={styles.label}>Select Template:</Text>
+            <Text style={styles.label}>Choose Template:</Text>
             <FlatList
               data={templates}
               keyExtractor={(item) => item.id}
               style={styles.templateList}
               renderItem={({ item }) => (
                 <Pressable
-                  style={[
+                  style={({ pressed }) => [
                     styles.templateOption,
-                    selectedTemplateId === item.id && styles.templateOptionSelected
+                    selectedTemplateId === item.id && styles.templateOptionSelected,
+                    pressed && styles.templateOptionPressed
                   ]}
                   onPress={() => setSelectedTemplateId(item.id)}
                 >
-                  <Text style={styles.templateOptionText}>{item.name}</Text>
+                  <Text style={[
+                    styles.templateOptionText,
+                    selectedTemplateId === item.id && styles.templateOptionTextSelected
+                  ]}>{item.name}</Text>
+                  {selectedTemplateId === item.id && (
+                    <Text style={styles.checkmark}>✓</Text>
+                  )}
                 </Pressable>
               )}
             />
             
             <View style={styles.modalButtons}>
-              <Pressable style={styles.cancelButton} onPress={() => setShowCreateFromTemplateModal(false)}>
+              <Pressable 
+                style={styles.cancelButton} 
+                onPress={() => setShowCreateFromTemplateModal(false)}
+              >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </Pressable>
               <Pressable 
-                style={[styles.createButton, !selectedTemplateId && styles.disabledButton]} 
+                style={[
+                  styles.createButton, 
+                  !selectedTemplateId && styles.disabledButton
+                ]} 
                 onPress={handleCreateInstance}
                 disabled={!selectedTemplateId}
               >
@@ -200,8 +278,12 @@ export default function HomeScreen() {
       {/* Manage Templates Modal */}
       <Modal visible={showTemplateModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContentLarge}>
-            <Text style={styles.modalTitle}>Manage Templates</Text>
+          <Pressable style={styles.modalBackdrop} onPress={() => setShowTemplateModal(false)} />
+          <View style={[styles.modalContent, styles.modalContentLarge]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Templates</Text>
+              <Text style={styles.modalSubtitle}>Create reusable budget templates</Text>
+            </View>
             
             <FlatList
               data={templates}
@@ -209,27 +291,36 @@ export default function HomeScreen() {
               style={styles.templateList}
               renderItem={({ item }) => (
                 <View style={styles.templateItemRow}>
-                  <Pressable
-                    style={styles.templateCard}
-                    onPress={() => {}}
-                  >
+                  <View style={styles.templateCard}>
                     <Text style={styles.templateCardText}>{item.name}</Text>
-                  </Pressable>
+                  </View>
                   <TouchableOpacity
                     onPress={() => handleDeleteTemplate(item.id, item.name)}
                     style={styles.deleteButton}
                   >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
+                    <View style={styles.dustbinContainer}>
+                      <View style={styles.dustbinTop} />
+                      <View style={styles.dustbinBody}>
+                        <View style={styles.dustbinLine} />
+                        <View style={styles.dustbinLine} />
+                        <View style={styles.dustbinLine} />
+                      </View>
+                    </View>
                   </TouchableOpacity>
                 </View>
               )}
-              ListEmptyComponent={<Text style={styles.emptyText}>No templates. Create one below!</Text>}
+              ListEmptyComponent={
+                <Text style={styles.emptyListText}>No templates yet</Text>
+              }
             />
             
-            <Text style={styles.label}>Create New Template:</Text>
+            <View style={styles.divider} />
+            
+            <Text style={styles.label}>New Template:</Text>
             <TextInput
               style={styles.input}
               placeholder="Template name"
+              placeholderTextColor={colors.textSecondary}
               value={templateName}
               onChangeText={setTemplateName}
             />
@@ -238,25 +329,35 @@ export default function HomeScreen() {
               <TextInput
                 style={[styles.input, styles.itemNameInput]}
                 placeholder="Item name"
+                placeholderTextColor={colors.textSecondary}
                 value={newItemName}
                 onChangeText={setNewItemName}
               />
               <TextInput
                 style={[styles.input, styles.itemBudgetInput]}
-                placeholder="Budget"
+                placeholder="₹0"
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="numeric"
                 value={newItemBudget}
                 onChangeText={setNewItemBudget}
               />
             </View>
             
-            <Pressable style={styles.addItemButton} onPress={handleAddTemplateItem}>
+            <Pressable 
+              style={styles.addItemButton} 
+              onPress={handleAddTemplateItem}
+            >
               <Text style={styles.addItemButtonText}>+ Add Item</Text>
             </Pressable>
             
             {templateItems.map((item, index) => (
               <View key={item.id} style={styles.templateItemChip}>
-                <Text>{item.name} {item.budget ? `(₹${item.budget})` : '(Unlimited)'}</Text>
+                <View style={styles.chipContent}>
+                  <Text style={styles.chipName}>{item.name}</Text>
+                  <Text style={styles.chipBudget}>
+                    {item.budget ? `₹${item.budget}` : 'Unlimited'}
+                  </Text>
+                </View>
                 <TouchableOpacity onPress={() => handleRemoveTemplateItem(index)}>
                   <Text style={styles.removeChipText}>✕</Text>
                 </TouchableOpacity>
@@ -285,116 +386,266 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
     paddingTop: 60,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    backgroundColor: colors.card,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
   title: {
-    fontSize: 26,
-    fontWeight: "700",
-    marginBottom: 10,
+    fontSize: 32,
+    fontWeight: "800",
+    color: colors.primary,
+    letterSpacing: -0.5,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
+  subtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 100,
   },
   card: {
-    padding: 18,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  cardText: {
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  emptyText: {
-    color: "#888",
-    fontSize: 14,
-    marginBottom: 10,
-  },
-  addButton: {
-    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: "black",
+    marginBottom: 12,
+    borderRadius: 16,
+    backgroundColor: colors.card,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.9,
+  },
+  cardIcon: {
+    width: 48,
+    height: 48,
     borderRadius: 12,
-    alignItems: "center",
-  },
-  addText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  menuContainer: {
-    marginTop: 10,
-  },
-  menuButton: {
-    padding: 14,
-    backgroundColor: "#333",
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  menuButtonText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: `${colors.highlight}15`,
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 20,
-    width: "85%",
-    maxHeight: "70%",
+  cardIconText: {
+    fontSize: 24,
   },
-  modalContentLarge: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 20,
-    width: "90%",
-    maxHeight: "85%",
+  cardContent: {
+    flex: 1,
+    marginLeft: 14,
   },
-  modalTitle: {
+  cardText: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: colors.text,
+  },
+  cardSubtext: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  deleteCardButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.danger,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  dustbinContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  dustbinTop: {
+    width: 14,
+    height: 3,
+    backgroundColor: "white",
+    borderRadius: 1,
+    marginBottom: 1,
+  },
+  dustbinBody: {
+    width: 12,
+    height: 14,
+    backgroundColor: "white",
+    borderRadius: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 2,
+  },
+  dustbinLine: {
+    width: 8,
+    height: 1,
+    backgroundColor: colors.danger,
+    marginVertical: 1,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingTop: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyTitle: {
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 15,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  buttonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  primaryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    backgroundColor: colors.highlight,
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  buttonPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.9,
+  },
+  primaryButtonIcon: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "white",
+    marginRight: 8,
+  },
+  primaryButtonText: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "white",
+  },
+  secondaryButton: {
+    padding: 14,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.textSecondary,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: "75%",
+  },
+  modalContentLarge: {
+    maxHeight: "90%",
+  },
+  modalHeader: {
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    marginTop: 4,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 14,
     fontSize: 16,
-    marginBottom: 10,
+    marginBottom: 16,
+    backgroundColor: colors.background,
+    color: colors.text,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    marginBottom: 5,
-    marginTop: 5,
+    color: colors.textSecondary,
+    marginBottom: 10,
+    marginTop: 4,
   },
   templateList: {
-    maxHeight: 150,
-    marginBottom: 10,
+    maxHeight: 180,
+    marginBottom: 16,
   },
   templateOption: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 12,
     marginBottom: 8,
+    backgroundColor: colors.background,
+  },
+  templateOptionPressed: {
+    backgroundColor: colors.border,
   },
   templateOptionSelected: {
-    borderColor: "#007AFF",
-    backgroundColor: "#E8F4FF",
+    borderColor: colors.highlight,
+    backgroundColor: `${colors.highlight}10`,
   },
   templateOptionText: {
     fontSize: 16,
+    color: colors.text,
+  },
+  templateOptionTextSelected: {
+    fontWeight: "600",
+    color: colors.highlight,
+  },
+  checkmark: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.highlight,
   },
   templateItemRow: {
     flexDirection: "row",
@@ -403,24 +654,37 @@ const styles = StyleSheet.create({
   },
   templateCard: {
     flex: 1,
-    padding: 12,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 8,
+    padding: 14,
+    backgroundColor: colors.background,
+    borderRadius: 10,
   },
   templateCardText: {
     fontSize: 16,
+    color: colors.text,
   },
   deleteButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.danger,
+    justifyContent: "center",
+    alignItems: "center",
     marginLeft: 8,
   },
-  deleteButtonText: {
-    color: "red",
-    fontWeight: "600",
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 16,
+  },
+  emptyListText: {
+    textAlign: "center",
+    color: colors.textSecondary,
+    fontSize: 15,
+    paddingVertical: 20,
   },
   itemInputRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 10,
   },
   itemNameInput: {
     flex: 2,
@@ -429,49 +693,66 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addItemButton: {
-    padding: 10,
-    backgroundColor: "#E8F4FF",
-    borderRadius: 8,
+    padding: 12,
+    backgroundColor: `${colors.success}15`,
+    borderRadius: 10,
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   addItemButtonText: {
-    color: "#007AFF",
+    color: colors.success,
     fontWeight: "600",
+    fontSize: 15,
   },
   templateItemChip: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 8,
-    marginBottom: 6,
+    justifyContent: "space-between",
+    padding: 12,
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  chipContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  chipName: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: colors.text,
+  },
+  chipBudget: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
   removeChipText: {
-    color: "red",
+    color: colors.danger,
     fontWeight: "600",
-    paddingLeft: 10,
+    fontSize: 14,
+    padding: 4,
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 10,
-    marginTop: 15,
+    gap: 12,
+    marginTop: 8,
   },
   cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
   },
   cancelButtonText: {
     fontSize: 16,
-    color: "#666",
+    color: colors.textSecondary,
+    fontWeight: "600",
   },
   createButton: {
-    backgroundColor: "black",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: colors.highlight,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
   },
   createButtonText: {
     color: "white",
@@ -479,6 +760,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   disabledButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: colors.border,
   },
 });

@@ -110,18 +110,16 @@ export const usePlanStore = create<PlanState>((set, get) => ({
         spent: 0,
         isExtra: item.isExtra,
       }));
-    } else {
-      // Default blank template with Extras
-      items = [
-        {
-          id: generateId(),
-          instance_id: id,
-          name: "Extras",
-          spent: 0,
-          isExtra: true,
-        },
-      ];
     }
+
+    // Always add "Extras" item to every bucket (unlimited spending)
+    items.push({
+      id: generateId(),
+      instance_id: id,
+      name: "Extras",
+      spent: 0,
+      isExtra: true,
+    });
 
     saveItemsForInstance(id, items);
     get().loadInstances();
