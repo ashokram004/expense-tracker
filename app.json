@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "expense-tracker",
+    "name": "Budget Buckets",
     "slug": "expense-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -45,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bfbbc082-23f3-4295-bc35-ab4f9f580466"
+      }
     }
   }
 }

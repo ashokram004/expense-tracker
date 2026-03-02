@@ -11,5 +11,25 @@ export default function Layout() {
     hydrate();
   }, []);
 
-  return <Stack />;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        headerTitle: "Budget Buckets",
+        headerTitleStyle: {
+          color: "#E94560",
+          fontSize: 20,
+          fontWeight: "700",
+        },
+        headerStyle: {
+          backgroundColor: "#FFFFFF",
+        },
+        headerLargeTitle: false,
+        headerShadowVisible: false,
+        contentStyle: {
+          backgroundColor: "#F8F9FA",
+        },
+      }}
+    />
+  );
 }

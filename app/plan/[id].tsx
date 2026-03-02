@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50,
+    paddingTop: 60,
     paddingHorizontal: 16,
     paddingBottom: 16,
     backgroundColor: colors.card,
@@ -321,6 +321,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: colors.text,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  bucketBadge: {
+    backgroundColor: `${colors.secondary}15`,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  bucketBadgeText: {
+    fontSize: 11,
+    fontWeight: "500",
+    color: colors.secondary,
   },
   remainingText: {
     fontSize: 14,

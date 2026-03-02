@@ -33,8 +33,12 @@ const colors = {
 export default function ItemScreen() {
   const { id } = useLocalSearchParams();
 
+  const instances = usePlanStore((state) => state.instances);
   const { currentItems: items, addExpense, clearAll, removeExpense } = usePlanStore();
   const item = items.find((i: any) => i.id === id);
+  
+  // Get bucket name from instance_id
+  const bucketName = item?.instance_id ? instances.find(inst => inst.id === item.instance_id)?.name : "";
 
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -128,7 +132,7 @@ export default function ItemScreen() {
         </Pressable>
         <View style={styles.headerContent}>
           <Text style={styles.title}>{item.name}</Text>
-          <Text style={styles.subtitle}>Track your spending</Text>
+          <Text style={styles.subtitle}>{bucketName ? `📦 ${bucketName}` : 'Track your spending'}</Text>
         </View>
       </View>
 
@@ -291,7 +295,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50,
+    paddingTop: 60,
     paddingHorizontal: 16,
     paddingBottom: 16,
     backgroundColor: colors.card,
