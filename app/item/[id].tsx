@@ -65,6 +65,12 @@ export default function ItemScreen() {
     setHistory(data);
   }, [item.spent, id]);
 
+  // Also refresh history whenever the current items array updates
+  useEffect(() => {
+    const data = getExpenses(id as string);
+    setHistory(data);
+  }, [items, id]);
+
   // Add Expense
   const handleAddExpense = () => {
     const value = Number(amount);
@@ -82,6 +88,8 @@ export default function ItemScreen() {
     addExpense(id as string, value, note);
     setAmount("");
     setNote("");
+    const newHistory = getExpenses(id as string);
+    setHistory(newHistory);
   };
 
   // Clear All
@@ -95,14 +103,18 @@ export default function ItemScreen() {
     Alert.alert(
       "Clear All?",
       `This will mark the remaining ₹${remaining} as spent and mark this item as complete.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Clear", 
-          style: "destructive",
-          onPress: () => clearAll(id as string)
-        },
-      ]
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Clear",
+            style: "destructive",
+            onPress: () => {
+              clearAll(id as string);
+              const newHistory = getExpenses(id as string);
+              setHistory(newHistory);
+            }
+          },
+        ]
     );
   };
 
@@ -110,14 +122,18 @@ export default function ItemScreen() {
     Alert.alert(
       "Delete Expense",
       `Delete this expense of ₹${expense.amount}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: () => removeExpense(expense.id, id as string, expense.amount)
-        },
-      ]
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              removeExpense(expense.id, id as string, expense.amount);
+              const newHistory = getExpenses(id as string);
+              setHistory(newHistory);
+            }
+          },
+        ]
     );
   };
 
@@ -251,10 +267,10 @@ export default function ItemScreen() {
             </View>
           ) : (
             <FlatList
-              data={history}
-              keyExtractor={(h) => h.id.toString()}
-              scrollEnabled={false}
-              renderItem={({ item: h }) => (
+                style={styles.historyList}
+                data={history}
+                keyExtractor={(h) => h.id.toString()}
+                renderItem={({ item: h }) => (
                 <Pressable 
                   style={({ pressed }) => [
                     styles.historyItem,
@@ -485,6 +501,10 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 0,
     paddingBottom: 40,
+    flex: 1,
+  },
+  historyList: {
+    flex: 1,
   },
   historyTitle: {
     fontSize: 18,

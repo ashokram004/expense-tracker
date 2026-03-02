@@ -174,12 +174,13 @@ export default function PlanScreen() {
       </View>
 
       {/* Items List */}
+      <Text style={styles.sectionTitle}>Budget Items</Text>
       <FlatList
+        style={styles.flatList}
         data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={renderItem}
-        ListHeaderComponent={<Text style={styles.sectionTitle}>Budget Items</Text>}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No items in this plan</Text>
@@ -277,12 +278,17 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingTop: 8,
+    paddingBottom: 120,
+  },
+  flatList: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: colors.text,
     marginBottom: 12,
+    marginLeft: 16,
   },
   card: {
     backgroundColor: colors.card,

@@ -12,6 +12,7 @@ import {
   loadItemsByInstance,
   saveItemsForInstance,
   saveTemplateItems,
+  updateTemplateName,
 } from "../db/database";
 
 export type PlanItem = {
@@ -63,6 +64,8 @@ type PlanState = {
   addTemplate: (name: string, items: Omit<TemplateItem, "template_id">[]) => void;
   removeTemplate: (id: string) => void;
   loadTemplateItems: (templateId: string) => void;
+
+  updateTemplate: (templateId: string, name: string, items: TemplateItem[]) => void;
 
   // Item actions (for current instance)
   addExpense: (id: string, amount: number, note?: string) => void;
@@ -134,6 +137,12 @@ export const usePlanStore = create<PlanState>((set, get) => ({
 
   loadInstanceItems: (instanceId: string) => {
     const items = loadItemsByInstance(instanceId);
+    // Sort by budget descending; items with undefined budget (Extras) go last
+    items.sort((a, b) => {
+      const ba = b.budget ?? Number.NEGATIVE_INFINITY;
+      const aa = a.budget ?? Number.NEGATIVE_INFINITY;
+      return ba - aa;
+    });
     set({ currentItems: items });
   },
 
@@ -169,6 +178,26 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     set((state) => ({
       templateItems: { ...state.templateItems, [templateId]: items },
     }));
+  },
+
+  updateTemplate: (templateId: string, name: string, items: TemplateItem[]) => {
+    // Update name and items in DB
+    updateTemplateName(templateId, name);
+
+    // Ensure items have the correct template_id and ids
+    const itemsToSave = items.map((it) => ({
+      id: it.id || generateId(),
+      template_id: templateId,
+      name: it.name,
+      budget: it.budget,
+      isExtra: it.isExtra,
+    }));
+
+    saveTemplateItems(templateId, itemsToSave);
+
+    // Reload templates and template items
+    get().loadTemplates();
+    get().loadTemplateItems(templateId);
   },
 
   // =========================

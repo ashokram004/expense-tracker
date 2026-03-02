@@ -192,6 +192,13 @@ export const deleteTemplate = (templateId: string) => {
   db.runSync("DELETE FROM templates WHERE id = ?", [templateId]);
 };
 
+export const updateTemplateName = (templateId: string, name: string) => {
+  db.runSync(
+    `UPDATE templates SET name = ? WHERE id = ?`,
+    [name, templateId]
+  );
+};
+
 // =========================
 // TEMPLATE ITEMS
 // =========================
